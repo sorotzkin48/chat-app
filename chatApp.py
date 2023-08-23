@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect
 import csv
 from enum import Enum
 import base64
+import os
 
 class user_status(Enum):
     PASS_AND_NAME_MATCH = 1
@@ -37,16 +38,19 @@ def check_if_user_exists(username, userpass):
             if user[0] == username:
                 if user[1] != userpass:
                      msg = "user with that name already exist"
-                     status = 1
+                     status = 2
                 else:
                      msg = "you already registered, please login"
-                     status = 2
+                     status = 1
                 return status, msg
         return 3, " "
     return 4, "ERROR"
 
-    
 @app.route('/', methods=['GET','POST'])
+def landingPage():
+    return redirect('/register')
+    
+@app.route('/register', methods=['GET','POST'])
 def homePage():
     msg = " "
     if request.method == 'POST':
@@ -59,15 +63,34 @@ def homePage():
         elif status == user_status.NAME_MATCH.value:
            return render_template("login.html")
     return render_template("register.html")
+
+
 @app.route('/login', methods=['GET','POST'])
 def loginPage():
    if request.method == 'POST':
         username = request.form['username']
         userpass = request.form['password']
-        user_exists, msg = check_if_user_exists(username, userpass)
-        if user_exists:
-            return render_template('login.html')
+        status, msg = check_if_user_exists(username, userpass)
+        if status == user_status.PASS_AND_NAME_MATCH.value:
+            return redirect('/lobby')
    return render_template('login.html')
+
+
+@app.route('/lobby', methods=['GET','POST'])
+def lobbyPage():
+    if request.method == 'POST':
+        new_room = request.form['new_room']
+        with open('rooms/' + new_room , 'w') as f:
+            f.write("welcome")
+    rooms = os.listdir(os.getenv('ROOMS_DIR')) 
+    return render_template('lobby.html', room_names=rooms)
+
+
+@app.route('/chat/<room>', methods=['GET','POST'])
+def chatPage(room): 
+    print(room)
+    return render_template('chat.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
     app.debug = True
