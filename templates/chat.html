@@ -13,24 +13,24 @@
         if (room=="") room = "general";
         return "/api/chat/"+room;
       }
-  
+
       function updateChat() {
         $.get(room(), function(data) {
           $("#chatbox").text(data);
           window.setTimeout(updateChat, 1500);
         })
       }
-  
+
       function sendmessage() {
         $.post(room(), $("#inform").serialize() );
       }
-  
+
       $(document).ready(function() {
         $("#chatbox").text("Loading chat...");
         $("#sendBtn").click(sendmessage)
         window.setTimeout(updateChat, 1500);
       });
-  
+
     </script>
     <body>
       <h1>Chat Room: {{ room }}</h1>
@@ -40,7 +40,7 @@
         <input id="sendBtn" type="button" value="send">
       </form>
       <pre id="chatbox">Loading...</pre>
-      
+
       <br>
       <br>
       <a href="/lobby">Back to lobby</a>

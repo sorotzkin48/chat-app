@@ -10,6 +10,8 @@ COPY requirements.txt .
 
 ENV ROOMS_DIR='rooms/'
 
+ENV FLASK_ENV development
+
 # install dependencies
 RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org -r requirements.txt
 

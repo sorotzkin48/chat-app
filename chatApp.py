@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, flash
 from enum import Enum
 from datetime import datetime
 import csv
 import base64
 import os
+
 
 app = Flask("__name__")
 
@@ -44,14 +45,19 @@ def check_if_user_exists(username, userpass):
             if user[0] == username:
                 decoded= decode_password(user[1])
                 if userpass != decoded:
-                     msg = ""
+                     msg = "user name already exists"
                      status = 2
                 else:
-                     msg = ""
+                     msg = "user exists"
                      status = 1
                 return status, msg
-        return 3, " "
-    return 4, "ERROR"
+        return 3, "user added successfully"
+    return 4, "couldn't open file"
+
+def remove_suffix(room):
+    room=room[:-4]
+    return room
+
 
 @app.route('/', methods=['GET','POST'])
 def landingPage():
@@ -64,6 +70,7 @@ def homePage():
         username = request.form['username']
         userpass = request.form['password']
         status, msg = check_if_user_exists(username, userpass)
+        flash(msg)
         if status == user_status.NO_MATCH.value :
             add_user_to_csv(username, userpass)
             return redirect('/login')
@@ -78,6 +85,7 @@ def loginPage():
         username = request.form['username']
         userpass = request.form['password']
         status, msg = check_if_user_exists(username, userpass)
+        flash(msg)
         if status == user_status.PASS_AND_NAME_MATCH.value:
             session['username'] = username
             return redirect('/lobby')
@@ -87,11 +95,12 @@ def loginPage():
 @app.route('/lobby', methods=['GET','POST'])
 def lobbyPage():
     rooms = os.listdir(os.getenv('ROOMS_DIR'))
+    rooms = list(map(remove_suffix, rooms))
     if request.method == 'POST':
         new_room = request.form['new_room']
         if new_room not in rooms: 
             with open('rooms/' + new_room + ".txt" , 'w') as f:
-                f.write("welcome")
+                f.write("welcome \n")
     return render_template('lobby.html', room_names=rooms)
 
 
@@ -101,17 +110,21 @@ def chatPage(room):
 
 @app.route('/api/chat/<room>', methods=['GET', 'POST'])
 def apiPage(room):
-    message= request.form['msg']
-    name= session['username']
-    time= datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    if request.method == 'POST':
+        message= request.form['msg']
+        name= session['username']
+        time= datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-    with open(f'rooms/{room}.txt', 'a', newline='') as f:
-        f.write(f'[{time}] {name}: {message}\n')
+        with open(f'rooms/{room}.txt', 'a', newline='') as f:
+            f.write(f'[{time}] {name}: {message}\n')
+        f.close()
    
-    with open(f'rooms/{room}.txt', 'r' ) as f:
-        f.seek(0)
-        content = f.read()
-        return content
+    if request.method == "GET":
+        with open(f'rooms/{room}.txt', 'r' ) as f:
+           f.seek(0)
+           content = f.read()
+           return content
+            
             
 
 @app.route('/logout', methods=['GET', 'POST'])
