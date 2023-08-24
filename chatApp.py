@@ -75,7 +75,9 @@ def homePage():
             add_user_to_csv(username, userpass)
             return redirect('/login')
         elif status == user_status.NAME_MATCH.value:
-           return render_template("login.html")
+           return render_template("register.html")
+        elif status == user_status.PASS_AND_NAME_MATCH.value:
+            return redirect("/login")
     return render_template("register.html")
 
 

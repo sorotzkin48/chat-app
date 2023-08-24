@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'>
+    <meta charset='utf-8' dir="ltr">
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Register Menu</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet"  href="../chat-app.css" />
 </head>
 
 <body>
-  {% for mesg in get_flashed_messages() %}
-  <script>alert(msg)</script>
-  <h1>{{ mesg }}</h1>
-  {% endfor %}
+  <div class="flashes">
+    {% for message in get_flashed_messages()%}
+      {{ message|safe }}
+    {% endfor %}
+  </div>
     <div class="login-box">
         <h2>Register</h2>
         <form id="login-form" action="{{ url_for('homePage') }}" method="POST">
