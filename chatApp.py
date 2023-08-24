@@ -1,8 +1,16 @@
-from flask import Flask, render_template, request, redirect
-import csv
+from flask import Flask, render_template, request, redirect, session
 from enum import Enum
+from datetime import datetime
+import csv
 import base64
 import os
+
+app = Flask("__name__")
+
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+app.secret_key = "my_key_here"
+
 
 class user_status(Enum):
     PASS_AND_NAME_MATCH = 1
@@ -10,8 +18,6 @@ class user_status(Enum):
     NO_MATCH = 3
     ERROR = 4
 
-
-app = Flask("__name__")
 
 def encode_password(user_pass):
     pass_bytes = user_pass.encode('ascii')
@@ -28,7 +34,7 @@ def decode_password(user_pass):
 def add_user_to_csv(username, userpass):
     f = open('users.csv', 'a')
     writer = csv.writer(f)
-    writer.writerow([username,userpass])
+    writer.writerow([username, encode_password(userpass)])
     f.close()
 
 def check_if_user_exists(username, userpass):
@@ -36,11 +42,12 @@ def check_if_user_exists(username, userpass):
         users_arr = csv.reader(users)
         for user in users_arr:
             if user[0] == username:
-                if user[1] != userpass:
-                     msg = "user with that name already exist"
+                decoded= decode_password(user[1])
+                if userpass != decoded:
+                     msg = ""
                      status = 2
                 else:
-                     msg = "you already registered, please login"
+                     msg = ""
                      status = 1
                 return status, msg
         return 3, " "
@@ -72,24 +79,46 @@ def loginPage():
         userpass = request.form['password']
         status, msg = check_if_user_exists(username, userpass)
         if status == user_status.PASS_AND_NAME_MATCH.value:
+            session['username'] = username
             return redirect('/lobby')
    return render_template('login.html')
 
 
 @app.route('/lobby', methods=['GET','POST'])
 def lobbyPage():
+    rooms = os.listdir(os.getenv('ROOMS_DIR'))
     if request.method == 'POST':
         new_room = request.form['new_room']
-        with open('rooms/' + new_room , 'w') as f:
-            f.write("welcome")
-    rooms = os.listdir(os.getenv('ROOMS_DIR')) 
+        if new_room not in rooms: 
+            with open('rooms/' + new_room + ".txt" , 'w') as f:
+                f.write("welcome")
     return render_template('lobby.html', room_names=rooms)
 
 
 @app.route('/chat/<room>', methods=['GET','POST'])
 def chatPage(room): 
-    print(room)
-    return render_template('chat.html')
+    return render_template('chat.html', room=room)
+
+@app.route('/api/chat/<room>', methods=['GET', 'POST'])
+def apiPage(room):
+    message= request.form['msg']
+    name= session['username']
+    time= datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    with open(f'rooms/{room}.txt', 'a', newline='') as f:
+        f.write(f'[{time}] {name}: {message}\n')
+   
+    with open(f'rooms/{room}.txt', 'r' ) as f:
+        f.seek(0)
+        content = f.read()
+        return content
+            
+
+@app.route('/logout', methods=['GET', 'POST'])
+def logoutPage():
+    session.pop('username', None)
+    return redirect('/')
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
