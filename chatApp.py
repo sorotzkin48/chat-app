@@ -10,6 +10,7 @@ app = Flask("__name__")
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+app.config['STATIC_FOLDER'] = 'static'
 app.secret_key = "my_key_here"
 
 
@@ -38,6 +39,16 @@ def add_user_to_csv(username, userpass):
     writer.writerow([username, encode_password(userpass)])
     f.close()
 
+def check_input_if_valid(username, userpass):
+    if len(username) < 5:
+        return False, "Name must include at least 5 character"
+    if len(userpass) < 5:
+        return False, "Password must include at least 5 character"  
+    has_letter = any(char.isalpha() for char in userpass)
+    if has_letter:
+        return False, "Password must include only digits"
+    return True, " "  
+
 def check_if_user_exists(username, userpass):
     with open('users.csv', 'r') as users: 
         users_arr = csv.reader(users)
@@ -45,14 +56,11 @@ def check_if_user_exists(username, userpass):
             if user[0] == username:
                 decoded= decode_password(user[1])
                 if userpass != decoded:
-                     msg = "user name already exists"
                      status = 2
                 else:
-                     msg = "user exists"
                      status = 1
-                return status, msg
-        return 3, "user added successfully"
-    return 4, "couldn't open file"
+                return status
+        return 3
 
 def remove_suffix(room):
     room=room[:-4]
@@ -69,14 +77,21 @@ def homePage():
     if request.method == 'POST':
         username = request.form['username']
         userpass = request.form['password']
-        status, msg = check_if_user_exists(username, userpass)
-        flash(msg)
-        if status == user_status.NO_MATCH.value :
-            add_user_to_csv(username, userpass)
-            return redirect('/login')
+        status = check_if_user_exists(username, userpass)
+        if status == user_status.NO_MATCH.value:
+            valid_input, msg = check_input_if_valid(username, userpass)
+            if valid_input:
+                add_user_to_csv(username, userpass)
+                flash("user added successfully, please login")
+                return redirect('/login')
+            else:
+                flash(msg)
+                return redirect('/register')
         elif status == user_status.NAME_MATCH.value:
-           return render_template("register.html")
+            flash("user name in use, please choose a diffrent name")
+            return render_template("register.html")
         elif status == user_status.PASS_AND_NAME_MATCH.value:
+            flash("user already exist, please login")
             return redirect("/login")
     return render_template("register.html")
 
@@ -86,23 +101,33 @@ def loginPage():
    if request.method == 'POST':
         username = request.form['username']
         userpass = request.form['password']
-        status, msg = check_if_user_exists(username, userpass)
-        flash(msg)
+        status = check_if_user_exists(username, userpass)
         if status == user_status.PASS_AND_NAME_MATCH.value:
+            flash("")
             session['username'] = username
             return redirect('/lobby')
+        else: 
+            flash("user not exist, please sign up")
+            return redirect('/register')
    return render_template('login.html')
 
 
 @app.route('/lobby', methods=['GET','POST'])
 def lobbyPage():
-    rooms = os.listdir(os.getenv('ROOMS_DIR'))
-    rooms = list(map(remove_suffix, rooms))
+    rooms = list(map(remove_suffix, os.listdir(os.getenv('ROOMS_DIR'))))
     if request.method == 'POST':
         new_room = request.form['new_room']
-        if new_room not in rooms: 
+        if new_room == "":
+            flash("Please enter name of room")
+            return render_template('lobby.html', room_names=rooms)
+        if new_room in rooms: 
+            flash("Room already exist")
+        else:
             with open('rooms/' + new_room + ".txt" , 'w') as f:
                 f.write("welcome \n")
+                f.close()
+        rooms = list(map(remove_suffix, os.listdir(os.getenv('ROOMS_DIR'))))
+        render_template('lobby.html', room_names=rooms)
     return render_template('lobby.html', room_names=rooms)
 
 
@@ -116,7 +141,7 @@ def apiPage(room):
         message= request.form['msg']
         name= session['username']
         time= datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-
+        
         with open(f'rooms/{room}.txt', 'a', newline='') as f:
             f.write(f'[{time}] {name}: {message}\n')
         f.close()
@@ -124,7 +149,9 @@ def apiPage(room):
     if request.method == "GET":
         with open(f'rooms/{room}.txt', 'r' ) as f:
            f.seek(0)
-           content = f.read()
+           content = f.readlines()  # קרא את כל השורות בקובץ לרשימה
+           content.reverse()  # הפוך את הרשימה
+           content = ''.join(content)  # פרט את הרשימה למחרוזת
            return content
             
             
@@ -132,7 +159,7 @@ def apiPage(room):
 @app.route('/logout', methods=['GET', 'POST'])
 def logoutPage():
     session.pop('username', None)
-    return redirect('/')
+    return redirect('/login')
 
 
 if __name__ == '__main__':

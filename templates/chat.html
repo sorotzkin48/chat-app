@@ -4,7 +4,7 @@
     <meta charset="UTF-8" dir="ltr">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
-    <link rel="stylesheet"  href="../chat-app.css" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='chat-app.css') }}">
 </head>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
@@ -32,17 +32,17 @@
       });
 
     </script>
-    <body>
+    <body id="chat-body">
       <h1>Chat Room: {{ room }}</h1>
-
+      <div>
       <form id="inform" action="/api/chat" method="POST">
-        Message:<input name="msg" type=text>
+        Message:<br><input id="msg-input" name="msg" type=text>
         <input id="sendBtn" type="button" value="send">
       </form>
       <pre id="chatbox">Loading...</pre>
-
       <br>
       <br>
+     </div>
       <a href="/lobby">Back to lobby</a>
       <br>
       <br>

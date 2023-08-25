@@ -5,17 +5,19 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Login Menu</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel="stylesheet"  href="../chat-app.css" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='chat-app.css') }}"></head>
 </head>
 <body>
-  <div class="flashes">
-    {% for message in get_flashed_messages()%}
-      {{ message|safe }}
-    {% endfor %}
-  </div>
+  
     <div class="login-box">
         <h2>Log in</h2>
         <form id="login-form" action="{{ url_for('loginPage') }}" method="POST">
+          <img src="../static/profile.png" >
+          <div class="flashes">
+            {% for message in get_flashed_messages()%}
+              {{ message|safe }}
+            {% endfor %}
+          </div>
           <div class="user-box">
             <input type="text" name="username" required="">
             <label>User name</label>
@@ -24,7 +26,7 @@
             <input type="password" name="password" required="">
             <label>Password</label>
           </div>
-          <a href="#" onclick="submitForm();">
+          <a class="submit-form" href="#" onclick="submitForm();">
             <span></span>
             <span></span>
             <span></span>
