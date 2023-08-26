@@ -12,17 +12,17 @@
 <body id="lobby-body">
     <h1>Hello, welcome to chat app!</h1>
     <h2>This is the home page</h2>
+    <div id="flashes-lobby">
+                    {% for message in get_flashed_messages()%}
+                    {{ message }}
+                    {% endfor %}
+                </div>
     <div>
         <div>
             <h3>Create a room:</h3><br>
             <form method="POST">
                 <input type="text" id="rname" name="new_room"><br>
                 <input type="submit" class="btn-lobby" name="Create" value="Create">
-                <!-- <div id="flashes-lobby">
-                    {% for message in get_flashed_messages()%}
-                    {{ message }}
-                    {% endfor %}
-                </div> -->
             </form>
         </div>
         <div>

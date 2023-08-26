@@ -82,16 +82,16 @@ def homePage():
             valid_input, msg = check_input_if_valid(username, userpass)
             if valid_input:
                 add_user_to_csv(username, userpass)
-                flash("user added successfully, please login")
+                flash("User added successfully, please login")
                 return redirect('/login')
             else:
                 flash(msg)
                 return redirect('/register')
         elif status == user_status.NAME_MATCH.value:
-            flash("user name in use, please choose a diffrent name")
+            flash("Name in use, please choose a diffrent name")
             return render_template("register.html")
         elif status == user_status.PASS_AND_NAME_MATCH.value:
-            flash("user already exist, please login")
+            flash("User already exist, please login")
             return redirect("/login")
     return render_template("register.html")
 
@@ -107,7 +107,7 @@ def loginPage():
             session['username'] = username
             return redirect('/lobby')
         else: 
-            flash("user not exist, please sign up")
+            flash("User not exist, please sign up")
             return redirect('/register')
    return render_template('login.html')
 
