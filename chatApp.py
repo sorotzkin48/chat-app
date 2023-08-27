@@ -5,9 +5,7 @@ import csv
 import base64
 import os
 
-
 app = Flask("__name__")
-
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['STATIC_FOLDER'] = 'static'
@@ -22,24 +20,39 @@ class user_status(Enum):
 
 
 def encode_password(user_pass):
+    """
+    encodes passwords on base64
+    """
     pass_bytes = user_pass.encode('ascii')
     base64_bytes = base64.b64encode(pass_bytes)
     base64_message = base64_bytes.decode('ascii')
     return base64_message
 
+
 def decode_password(user_pass):
+    """
+    decodes passwords on base64
+    """
     base64_bytes = user_pass.encode('ascii')
     pass_bytes = base64.b64decode(base64_bytes)
     user_pass = pass_bytes.decode('ascii')
     return user_pass
 
+
 def add_user_to_csv(username, userpass):
+    """
+    adds user
+    """
     f = open('users.csv', 'a')
     writer = csv.writer(f)
     writer.writerow([username, encode_password(userpass)])
     f.close()
 
+
 def check_input_if_valid(username, userpass):
+    """
+    checks input validity
+    """
     if len(username) < 5:
         return False, "Name must include at least 5 character"
     if len(userpass) < 5:
@@ -49,7 +62,11 @@ def check_input_if_valid(username, userpass):
         return False, "Password must include only digits"
     return True, " "  
 
+
 def check_if_user_exists(username, userpass):
+    """
+    checks if user exists in the program
+    """
     with open('users.csv', 'r') as users: 
         users_arr = csv.reader(users)
         for user in users_arr:
@@ -62,17 +79,28 @@ def check_if_user_exists(username, userpass):
                 return status
         return 3
 
+
 def remove_suffix(room):
+    """
+    removes suffix 
+    """
     room=room[:-4]
     return room
 
 
 @app.route('/', methods=['GET','POST'])
 def landingPage():
+    """
+    redirects user who enters to register
+    """
     return redirect('/register')
+
     
 @app.route('/register', methods=['GET','POST'])
 def homePage():
+    """
+    registers new users
+    """
     msg = " "
     if request.method == 'POST':
         username = request.form['username']
@@ -98,6 +126,9 @@ def homePage():
 
 @app.route('/login', methods=['GET','POST'])
 def loginPage():
+   """
+   logs users in and adds him to the current session
+   """
    if request.method == 'POST':
         username = request.form['username']
         userpass = request.form['password']
@@ -114,6 +145,9 @@ def loginPage():
 
 @app.route('/lobby', methods=['GET','POST'])
 def lobbyPage():
+    """
+    lobby - creates new chat rooms and redirects to existing chat rooms
+    """
     rooms = list(map(remove_suffix, os.listdir(os.getenv('ROOMS_DIR'))))
     if request.method == 'POST':
         new_room = request.form['new_room']
@@ -133,10 +167,16 @@ def lobbyPage():
 
 @app.route('/chat/<room>', methods=['GET','POST'])
 def chatPage(room): 
+    """
+    renders specific chat room
+    """
     return render_template('chat.html', room=room)
 
 @app.route('/api/chat/<room>', methods=['GET', 'POST'])
 def apiPage(room):
+    """
+    deals with messages for chat
+    """
     if request.method == 'POST':
         message= request.form['msg']
         name= session['username']
@@ -155,9 +195,11 @@ def apiPage(room):
            return content
             
             
-
 @app.route('/logout', methods=['GET', 'POST'])
 def logoutPage():
+    """
+    logs user out and removes him from the current session
+    """
     session.pop('username', None)
     return redirect('/login')
 
