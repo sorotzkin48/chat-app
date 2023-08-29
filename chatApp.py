@@ -11,6 +11,8 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.config['STATIC_FOLDER'] = 'static'
 app.secret_key = "my_key_here"
 
+# Setting a new environment variable
+os.environ["CURRENT_ROOM"] = ""
 
 class user_status(Enum):
     PASS_AND_NAME_MATCH = 1
@@ -151,13 +153,14 @@ def lobbyPage():
     rooms = list(map(remove_suffix, os.listdir(os.getenv('ROOMS_DIR'))))
     if request.method == 'POST':
         new_room = request.form['new_room']
+        os.environ["CURRENT_ROOM"] = new_room
         if new_room == "":
             flash("Please enter name of room")
             return render_template('lobby.html', room_names=rooms)
         if new_room in rooms: 
             flash("Room already exist")
         else:
-            with open('rooms/' + new_room + ".txt" , 'w') as f:
+            with open('rooms/' + os.environ["CURRENT_ROOM"] + ".txt" , 'w') as f:
                 f.write("welcome \n")
                 f.close()
         rooms = list(map(remove_suffix, os.listdir(os.getenv('ROOMS_DIR'))))
