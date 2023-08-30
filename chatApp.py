@@ -4,6 +4,7 @@ from datetime import datetime
 import csv
 import base64
 import os
+import re
 
 app = Flask("__name__")
 app.config["SESSION_PERMANENT"] = False
@@ -177,7 +178,8 @@ def clearPage(room):
     with open(f'rooms/{room}.txt', 'w') as f:
         for line in lines:
             if name_to_remove not in line:
-                f.write(line) 
+                f.write(line)
+
 
 @app.route('/health')
 def healthPage():

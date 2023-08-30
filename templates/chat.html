@@ -42,7 +42,7 @@
 
     </script>
     <body id="chat-body">
-      <input action="api/clear" method="POST" id="clear" onclick="clearRoom()" type="button">Clear</input>
+      <input value="clear" action="api/clear" method="POST" id="clear" type="button"></input>
       <h1>Chat Room: {{ room }}</h1>
       <form id="inform" action="/api/chat" method="POST">
         Message:<br><input id="msg-input" name="msg" type=text>

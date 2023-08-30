@@ -1,11 +1,9 @@
 check_valid() {
-    # Validate tag name using regex
     regex_pattern="^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$"
-
     if ! [[ $1 =~ $regex_pattern ]]; then
-        return 1  # Return a non-zero value to indicate failure
+        return 1
     fi
-    return 0  # Return 0 to indicate success
+    return 0 
 }
 
 read -p "Enter version: " version
