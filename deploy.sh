@@ -9,6 +9,7 @@ check_valid() {
 }
 
 read -p "Enter version: " version
+git log
 read -p "Enter commit hash: " commit_hash
 
 if check_valid "$version"; then

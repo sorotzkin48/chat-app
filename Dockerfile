@@ -1,34 +1,35 @@
-# set base image (host OS)
+# Use an official Python runtime as a parent image
 FROM python:3.8-slim AS reduce_docker_image
 
-# set the working directory in the container
+# Set the working directory to /code in the build stage
 WORKDIR /code
 
-# copy the dependencies file to the working directory
-# COPY requirements.txt .
-
-# retrieve the rooms/ dir as an environment variable
+# Set an environment variable for the directory where room files will be stored
 ENV ROOMS_DIR='rooms/'
 
-# change the enviroment to be development
+# Set the Flask environment to development
 ENV FLASK_ENV development
 
-COPY  debug.sh requirements.txt /code/
+# Copy the debug script and requirements file to the build stage
+COPY debug.sh requirements.txt .
 
-# install dependencies
+# Install Python dependencies from requirements file
 RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org -r requirements.txt 
 
-# copy the content of the local src directory to the working directory
-COPY . /code/
+# Copy the rest of the application code to the build stage
+COPY . .
 
+# Stage 2: Final Image
+# Use the reduced Docker image as the base image
 FROM reduce_docker_image
 
-# set the working directory in the container
-WORKDIR /code
-
+# Copy the content from the build stage to the final image
 COPY --from=reduce_docker_image /code /code
 
+# Set the working directory for the final image (optional)
+# WORKDIR /code
 
-# command to run on container start
+HEALTHCHECK --interval=10s --timeout=3s CMD curl --fail http://localhost/health || exit 1
+
+# Command to run when the container starts
 CMD [ "python", "./chatApp.py" ]
-

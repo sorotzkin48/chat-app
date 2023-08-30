@@ -167,6 +167,22 @@ def lobbyPage():
         render_template('lobby.html', room_names=rooms)
     return render_template('lobby.html', room_names=rooms)
 
+@app.route('/api/clear/<room>', methods=['POST'])
+def clearPage(room):
+    name_to_remove= session['username']
+    
+    with open(f'rooms/{room}.txt', 'r') as f:
+        lines = f.readlines()
+
+    with open(f'rooms/{room}.txt', 'w') as f:
+        for line in lines:
+            if name_to_remove not in line:
+                f.write(line) 
+
+@app.route('/health')
+def healthPage():
+    return "OK", 200
+    
 
 @app.route('/chat/<room>', methods=['GET','POST'])
 def chatPage(room): 
@@ -180,6 +196,7 @@ def apiPage(room):
     """
     deals with messages for chat
     """
+    content = " "
     if request.method == 'POST':
         message= request.form['msg']
         name= session['username']
@@ -195,7 +212,7 @@ def apiPage(room):
            content = f.readlines()  # קרא את כל השורות בקובץ לרשימה
            content.reverse()  # הפוך את הרשימה
            content = ''.join(content)  # פרט את הרשימה למחרוזת
-           return content
+    return content
             
             
 @app.route('/logout', methods=['GET', 'POST'])
