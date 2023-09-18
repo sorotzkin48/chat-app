@@ -11,8 +11,10 @@ ENV ROOMS_DIR='rooms/'
 ENV FLASK_ENV development
 
 # Copy the debug script and requirements file to the build stage
-COPY debug.sh requirements.txt .
+COPY debug.sh .
+COPY requirements.txt .
 
+#update and install curl
 RUN apt-get update && apt-get install -y curl
 
 # Install Python dependencies from requirements file
@@ -27,6 +29,7 @@ FROM reduce_docker_image
 # Copy the content from the build stage to the final image
 COPY --from=reduce_docker_image /code /code
 
+#check health every 3 seconds
 HEALTHCHECK --interval=10s --timeout=3s CMD curl --fail http://localhost:5000/health || exit 1
 
 # Command to run when the container starts

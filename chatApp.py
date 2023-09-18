@@ -46,7 +46,7 @@ def add_user_to_csv(username, userpass):
     """
     adds user
     """
-    f = open('users.csv', 'a')
+    f = open('users/users.csv', 'a')
     writer = csv.writer(f)
     writer.writerow([username, encode_password(userpass)])
     f.close()
@@ -70,7 +70,7 @@ def check_if_user_exists(username, userpass):
     """
     checks if user exists in the program
     """
-    with open('users.csv', 'r') as users: 
+    with open('users/users.csv', 'r') as users: 
         users_arr = csv.reader(users)
         for user in users_arr:
             if user[0] == username:
